@@ -70,7 +70,8 @@
       "mcp__plugin_playwright_playwright__browser_select_option",
       "Bash(pkill -f \"vite preview\")",
       "Bash(curl -s -o /dev/null -w \"dev: %{http_code}\\\\n\" http://localhost:5173/)",
-      "Bash(kill 61886)"
+      "Bash(kill 61886)",
+      "Bash(git ls-remote *)"
     ],
     "additionalDirectories": [
       "/Users/aleksandrsnigirev/Downloads",

@@ -4,7 +4,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches: [master]
   workflow_dispatch:
 
 permissions:
@@ -26,6 +26,14 @@ jobs:
           node-version: 22
           cache: yarn
       - run: yarn install --immutable
+      # Без ключей Supabase бандл соберётся, но сайт упадёт белым экраном —
+      # лучше уронить сборку сразу с понятной ошибкой
+      - name: Check secrets
+        run: |
+          if [ -z "${{ secrets.VITE_SUPABASE_URL }}" ] || [ -z "${{ secrets.VITE_SUPABASE_ANON_KEY }}" ]; then
+            echo "::error::Секреты VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY не заданы (Settings → Secrets and variables → Actions)"
+            exit 1
+          fi
       - run: yarn build
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
