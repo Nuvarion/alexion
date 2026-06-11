@@ -68,7 +68,9 @@
       "Bash(psql \"postgresql://postgres:postgres@127.0.0.1:54322/postgres\" -c \"delete from auth.users where id = '11111111-1111-1111-1111-111111111111';\" -c \"select count\\(*\\) from pages;\")",
       "mcp__plugin_playwright_playwright__browser_press_key",
       "mcp__plugin_playwright_playwright__browser_select_option",
-      "Bash(pkill -f \"vite preview\")"
+      "Bash(pkill -f \"vite preview\")",
+      "Bash(curl -s -o /dev/null -w \"dev: %{http_code}\\\\n\" http://localhost:5173/)",
+      "Bash(kill 61886)"
     ],
     "additionalDirectories": [
       "/Users/aleksandrsnigirev/Downloads",
