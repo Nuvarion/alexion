@@ -1,0 +1,253 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --color-text: #37352f;
+  --color-text-muted: #787774;
+  --color-bg: #ffffff;
+  --color-bg-sidebar: #f7f7f5;
+  --color-bg-hover: #efefed;
+  --color-border: #e9e9e7;
+  --color-accent: #2383e2;
+  --color-danger: #eb5757;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial,
+    sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+input,
+textarea {
+  font: inherit;
+}
+
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.nav-link {
+  display: block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: var(--color-text);
+}
+
+.nav-link:hover {
+  background: var(--color-bg-hover);
+  text-decoration: none;
+}
+
+.nav-link.active {
+  background: var(--color-bg-hover);
+  font-weight: 600;
+}
+
+.tree-item {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border-radius: 4px;
+  font-size: 14px;
+  min-height: 26px;
+}
+
+.tree-item:hover {
+  background: var(--color-bg-hover);
+}
+
+.tree-item-active {
+  background: var(--color-bg-hover);
+  font-weight: 600;
+}
+
+.tree-toggle {
+  border: none;
+  background: none;
+  width: 18px;
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  padding: 0;
+}
+
+.tree-title {
+  border: none;
+  background: none;
+  text-align: left;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 2px 0;
+  color: var(--color-text);
+}
+
+.tree-actions {
+  display: none;
+  flex-shrink: 0;
+}
+
+.tree-item:hover .tree-actions {
+  display: inline-flex;
+}
+
+.tree-actions button {
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  padding: 0 4px;
+}
+
+.tree-actions button:hover {
+  color: var(--color-text);
+}
+
+.ghost-button {
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-align: left;
+}
+
+.ghost-button:hover {
+  background: var(--color-bg-hover);
+}
+
+.page-card {
+  display: block;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  color: var(--color-text);
+}
+
+.page-card:hover {
+  background: var(--color-bg-hover);
+  text-decoration: none;
+}
+
+.page-title-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-size: 32px;
+  font-weight: 700;
+  padding: 0;
+  margin-top: 8px;
+  background: transparent;
+}
+
+.page-title-input::placeholder {
+  color: var(--color-border);
+}
+
+.kanban-board {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.kanban-column {
+  width: 280px;
+  flex-shrink: 0;
+  background: var(--color-bg-sidebar);
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.kanban-column-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 0 4px;
+}
+
+.kanban-count {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.kanban-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 8px;
+}
+
+.task-card {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 14px;
+  box-shadow: rgba(15, 15, 15, 0.04) 0 1px 2px;
+  cursor: grab;
+}
+
+.kanban-quick-add {
+  border: none;
+  background: none;
+  padding: 4px;
+  font-size: 14px;
+  width: 100%;
+  outline: none;
+  color: var(--color-text);
+}
+
+.kanban-quick-add::placeholder {
+  color: var(--color-text-muted);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 15, 15, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.modal {
+  background: var(--color-bg);
+  border-radius: 8px;
+  padding: 20px;
+  width: 420px;
+  max-width: 90vw;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal input,
+.modal textarea,
+.modal select {
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 6px 8px;
+}

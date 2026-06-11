@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(yarn --version)",
+      "Bash(yarn install *)",
+      "Bash(yarn set *)",
+      "Bash(git -C /Users/aleksandrsnigirev/Desktop/Projects/code/My/Alexion remote -v)",
+      "Bash(yarn add *)",
+      "Bash(yarn build *)"
+    ]
+  }
+}
