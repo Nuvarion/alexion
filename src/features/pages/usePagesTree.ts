@@ -3,7 +3,8 @@ import { useQuery } from '@tanstack/react-query'
 import type { PageMeta } from '../../lib/types'
 import { fetchPageMetas } from './api'
 
-export const MAX_PAGE_DEPTH = 10
+// Синхронно с триггером check_page_depth в БД (миграция 0003)
+export const MAX_PAGE_DEPTH = 15
 
 export interface PageNode extends PageMeta {
   children: PageNode[]
@@ -36,8 +37,11 @@ export function getAncestry(metas: PageMeta[], id: string): PageMeta[] {
   return chain
 }
 
-export function usePagesTree() {
-  const query = useQuery({ queryKey: ['pages'], queryFn: fetchPageMetas })
+export function usePagesTree(spaceId: string) {
+  const query = useQuery({
+    queryKey: ['pages', spaceId],
+    queryFn: () => fetchPageMetas(spaceId),
+  })
   const tree = useMemo(() => buildTree(query.data ?? []), [query.data])
   return { ...query, tree, metas: query.data ?? [] }
 }

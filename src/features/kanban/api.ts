@@ -1,12 +1,14 @@
 import { supabase } from '../../lib/supabase'
 import type { Task, TaskStatus } from '../../lib/types'
 
-const COLUMNS = 'id, title, description, status, position'
+const COLUMNS = 'id, title, description, status, position, teamspace_id'
 
-export async function fetchTasks(): Promise<Task[]> {
+// После миграции 0005 teamspace_id обязателен — всегда фильтруем по .eq
+export async function fetchTasks(spaceId: string): Promise<Task[]> {
   const { data, error } = await supabase
     .from('tasks')
     .select(COLUMNS)
+    .eq('teamspace_id', spaceId)
     .order('position')
   if (error) throw error
   return data
@@ -17,6 +19,7 @@ export interface NewTask {
   status: TaskStatus
   position: number
   description?: string
+  teamspace_id: string
 }
 
 export async function createTask(input: NewTask): Promise<Task> {

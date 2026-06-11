@@ -10,7 +10,8 @@ export interface TasksImportReport {
 const TITLE_HEADER = /^(name|task|имя|название|задача)$/i
 const STATUS_HEADER = /status|статус/i
 
-export async function importTasksCsv(text: string): Promise<TasksImportReport> {
+// Импорт задач из CSV — помещает их в указанное пространство (spaceId)
+export async function importTasksCsv(text: string, spaceId: string): Promise<TasksImportReport> {
   const { data } = Papa.parse<Record<string, string>>(text, {
     header: true,
     skipEmptyLines: true,
@@ -26,6 +27,7 @@ export async function importTasksCsv(text: string): Promise<TasksImportReport> {
       status: statusKey ? statusFromCsv(row[statusKey] ?? '') : ('todo' as const),
       position: Date.now() + i,
       description: '',
+      teamspace_id: spaceId,
     }))
     .filter((row) => row.title.length > 0)
 

@@ -1,6 +1,8 @@
 import { useState, type ChangeEvent } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
+import { MAX_PAGE_DEPTH } from '../pages/usePagesTree'
+import { usePersonalSpace } from '../teamspaces/useTeamspaces'
 import { importPages, type PagesImportReport } from './importPages'
 import { importTasksCsv, type TasksImportReport } from './importTasksCsv'
 import {
@@ -22,7 +24,8 @@ type Step =
     }
   | { name: 'error'; message: string }
 
-export default function ImportPage() {
+// Внутренний компонент: рендерится только когда личный workspace известен
+function ImportForm({ spaceId }: { spaceId: string }) {
   const [step, setStep] = useState<Step>({ name: 'idle' })
   const [csvPath, setCsvPath] = useState<string>('')
   const queryClient = useQueryClient()
@@ -50,11 +53,13 @@ export default function ImportPage() {
     try {
       const pagesReport = await importPages(result.pages, total, (done) =>
         setStep({ name: 'importing', done, total }),
+        spaceId,
       )
       const csv = result.csvFiles.find((c) => c.path === csvPath)
-      const tasksReport = csv ? await importTasksCsv(csv.text) : null
-      await queryClient.invalidateQueries({ queryKey: ['pages'] })
-      await queryClient.invalidateQueries({ queryKey: ['tasks'] })
+      const tasksReport = csv ? await importTasksCsv(csv.text, spaceId) : null
+      // импорт кладёт данные в личное пространство пользователя
+      await queryClient.invalidateQueries({ queryKey: ['pages', spaceId] })
+      await queryClient.invalidateQueries({ queryKey: ['tasks', spaceId] })
       setStep({
         name: 'done',
         pages: pagesReport,
@@ -71,15 +76,7 @@ export default function ImportPage() {
   }
 
   return (
-    <div style={{ maxWidth: 640, margin: '0 auto', padding: 32 }}>
-      <h1>Импорт из Notion</h1>
-      <p style={{ color: 'var(--color-text-muted)' }}>
-        В Notion: Settings → Export content → формат «Markdown & CSV». Загрузи
-        полученный zip сюда. Страницы попадут в новую страницу-контейнер
-        «Imported», задачи из CSV — в трекер. Вложения (картинки, файлы) не
-        импортируются. Повторный импорт создаст дубликаты.
-      </p>
-
+    <>
       {(step.name === 'idle' || step.name === 'error' || step.name === 'parsed') && (
         <input type="file" accept=".zip" onChange={handleFile} />
       )}
@@ -132,7 +129,7 @@ export default function ImportPage() {
               <>
                 {' '}
                 (из них {step.pages.flattened} подняты выше по дереву из-за
-                лимита вложенности 10)
+                лимита вложенности {MAX_PAGE_DEPTH})
               </>
             )}
             {step.tasks && (
@@ -147,6 +144,29 @@ export default function ImportPage() {
             Открыть импортированные страницы →
           </Link>
         </div>
+      )}
+    </>
+  )
+}
+
+export default function ImportPage() {
+  const { personal } = usePersonalSpace()
+
+  return (
+    <div style={{ maxWidth: 640, margin: '0 auto', padding: 32 }}>
+      <h1>Импорт из Notion</h1>
+      <p style={{ color: 'var(--color-text-muted)' }}>
+        В Notion: Settings → Export content → формат «Markdown & CSV». Загрузи
+        полученный zip сюда. Страницы попадут в новую страницу-контейнер
+        «Imported», задачи из CSV — в трекер. Вложения (картинки, файлы) не
+        импортируются. Повторный импорт создаст дубликаты.
+      </p>
+
+      {/* Кнопка импорта доступна только после загрузки личного workspace */}
+      {personal ? (
+        <ImportForm spaceId={personal.id} />
+      ) : (
+        <input type="file" accept=".zip" disabled />
       )}
     </div>
   )

@@ -12,8 +12,11 @@ export default function TaskEditModal({ task, onClose }: TaskEditModalProps) {
   const [title, setTitle] = useState(task.title)
   const [description, setDescription] = useState(task.description)
   const [status, setStatus] = useState<TaskStatus>(task.status)
-  const updateTask = useUpdateTask()
-  const deleteTask = useDeleteTask()
+  // Используем teamspace_id из самой задачи, чтобы инвалидировать правильный кэш
+  // даже если пользователь успел переключить пространство в главном селекте.
+  // После миграции 0005 teamspace_id гарантированно string.
+  const updateTask = useUpdateTask(task.teamspace_id)
+  const deleteTask = useDeleteTask(task.teamspace_id)
 
   function handleSave() {
     updateTask.mutate(

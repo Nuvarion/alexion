@@ -12,20 +12,30 @@ import {
 import Spinner from '../../components/Spinner'
 import { positionAfterLast, positionBetween } from '../../lib/position'
 import type { Task, TaskStatus } from '../../lib/types'
+import { usePersonalSpace } from '../teamspaces/useTeamspaces'
 import { isTaskStatus, KANBAN_COLUMNS } from './columns'
 import KanbanColumn from './KanbanColumn'
 import TaskEditModal from './TaskEditModal'
 import { useMoveTask, useTasks } from './useTasks'
 
-export default function KanbanPage() {
-  const { byStatus, data: tasks, isLoading, isError } = useTasks()
-  const moveTask = useMoveTask()
+// Внутренний компонент: рендерится только когда личный workspace известен
+function KanbanBoard({ personalId }: { personalId: string }) {
+  // null — ещё не выбрано (используем personalId по умолчанию)
+  const [spaceId, setSpaceId] = useState<string | null>(null)
+  const { spaces } = usePersonalSpace()
+  // Эффективный spaceId: если пользователь не выбрал явно — личное
+  const effectiveSpaceId = spaceId ?? personalId
+
+  const { byStatus, data: tasks, isLoading, isError } = useTasks(effectiveSpaceId)
+  const moveTask = useMoveTask(effectiveSpaceId)
   const [activeTask, setActiveTask] = useState<Task | null>(null)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   // Дистанция активации отличает клик (открыть модалку) от перетаскивания
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   )
+  // Только командные пространства в селекторе
+  const teamSpaces = (spaces ?? []).filter((s) => s.kind === 'team')
 
   if (isLoading) return <Spinner />
   if (isError) {
@@ -78,6 +88,19 @@ export default function KanbanPage() {
   return (
     <div style={{ padding: 32 }}>
       <h1 style={{ marginTop: 0 }}>Задачи</h1>
+      {/* Переключатель пространства */}
+      {/* disabled во время drag: смена пространства рассинхронизирует optimistic-обновление */}
+      <select
+        value={effectiveSpaceId}
+        onChange={(e) => setSpaceId(e.target.value)}
+        style={{ marginBottom: 16 }}
+        disabled={!!activeTask}
+      >
+        <option value={personalId}>Личное</option>
+        {teamSpaces.map((s) => (
+          <option key={s.id} value={s.id}>{s.name}</option>
+        ))}
+      </select>
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
@@ -92,6 +115,7 @@ export default function KanbanPage() {
               column={column}
               tasks={byStatus.get(column.status) ?? []}
               onTaskClick={setEditingTask}
+              spaceId={effectiveSpaceId}
             />
           ))}
         </div>
@@ -100,8 +124,20 @@ export default function KanbanPage() {
         </DragOverlay>
       </DndContext>
       {editingTask && (
-        <TaskEditModal task={editingTask} onClose={() => setEditingTask(null)} />
+        <TaskEditModal
+          task={editingTask}
+          onClose={() => setEditingTask(null)}
+        />
       )}
     </div>
   )
+}
+
+export default function KanbanPage() {
+  const { personal } = usePersonalSpace()
+
+  // Пока личный workspace не загружен — показываем спиннер
+  if (!personal) return <Spinner />
+
+  return <KanbanBoard personalId={personal.id} />
 }

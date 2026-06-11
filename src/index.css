@@ -44,6 +44,11 @@ a:hover {
   text-decoration: underline;
 }
 
+/* ссылки внутри редактора: contenteditable сбрасывает курсор на text */
+.bn-editor a {
+  cursor: pointer;
+}
+
 .nav-link {
   display: block;
   padding: 4px 8px;
@@ -62,6 +67,7 @@ a:hover {
 }
 
 .tree-item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 2px;
@@ -119,6 +125,68 @@ a:hover {
 
 .tree-actions button:hover {
   color: var(--color-text);
+}
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-text);
+  color: var(--color-bg);
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 100;
+  max-width: 80vw;
+}
+
+/* Drag & drop в дереве страниц */
+.tree-subtree-dragging {
+  opacity: 0.4;
+}
+
+.tree-dropzone {
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+
+.tree-drop-line {
+  position: absolute;
+  right: 4px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--color-accent);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.tree-drop-inside {
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--color-accent);
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+/* полупрозрачное превью: видно, куда именно произойдёт сброс */
+.tree-drag-overlay {
+  padding: 2px 4px;
+  border-radius: 4px;
+  background: var(--color-bg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  font-size: 14px;
+  max-width: 220px;
+  opacity: 0.5;
+}
+
+.tree-drag-overlay .tree-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ghost-button {

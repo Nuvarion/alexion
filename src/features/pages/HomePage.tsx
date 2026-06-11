@@ -1,11 +1,13 @@
 import { Link } from 'react-router-dom'
 import Spinner from '../../components/Spinner'
+import { usePersonalSpace } from '../teamspaces/useTeamspaces'
 import { usePagesTree } from './usePagesTree'
 import { useCreatePage } from './usePageMutations'
 
-export default function HomePage() {
-  const { tree, isLoading, isError } = usePagesTree()
-  const createPage = useCreatePage()
+// Внутренний компонент: рендерится только когда личный workspace известен
+function PersonalHomePage({ spaceId }: { spaceId: string }) {
+  const { tree, isLoading, isError } = usePagesTree(spaceId)
+  const createPage = useCreatePage(spaceId)
 
   if (isLoading) return <Spinner />
   if (isError) {
@@ -38,4 +40,13 @@ export default function HomePage() {
       </button>
     </div>
   )
+}
+
+export default function HomePage() {
+  const { personal } = usePersonalSpace()
+
+  // Пока личный workspace не загружен — показываем спиннер
+  if (!personal) return <Spinner />
+
+  return <PersonalHomePage spaceId={personal.id} />
 }

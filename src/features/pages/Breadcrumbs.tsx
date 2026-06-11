@@ -2,8 +2,9 @@ import { Fragment } from 'react'
 import { Link } from 'react-router-dom'
 import { getAncestry, usePagesTree } from './usePagesTree'
 
-export default function Breadcrumbs({ pageId }: { pageId: string }) {
-  const { metas } = usePagesTree()
+// spaceId — всегда строка после миграции 0005
+export default function Breadcrumbs({ pageId, spaceId }: { pageId: string; spaceId: string }) {
+  const { metas } = usePagesTree(spaceId)
   const chain = getAncestry(metas, pageId)
   if (chain.length === 0) return null
 

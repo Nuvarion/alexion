@@ -2,6 +2,7 @@ import { BlockNoteEditor, type Block } from '@blocknote/core'
 import { insertPages, type PageInsert } from '../pages/api'
 import { MAX_PAGE_DEPTH } from '../pages/usePagesTree'
 import type { NotionPageNode } from './parseNotionZip'
+import { rewriteNotionLinks } from './rewriteNotionLinks'
 
 export interface PagesImportReport {
   created: number
@@ -28,10 +29,25 @@ export async function importPages(
   nodes: NotionPageNode[],
   totalPages: number,
   onProgress: (done: number) => void,
+  spaceId: string,
 ): Promise<PagesImportReport> {
   const editor = BlockNoteEditor.create()
   let created = 0
   let flattened = 0
+
+  // id раздаются до вставки: ссылки между страницами переписываются в
+  // /page/<id> ещё в markdown, до конвертации в блоки
+  const idOf = new Map<NotionPageNode, string>()
+  const idByPath = new Map<string, string>()
+  const assignIds = (list: NotionPageNode[]) => {
+    for (const node of list) {
+      const id = crypto.randomUUID()
+      idOf.set(node, id)
+      idByPath.set(node.path.join('/'), id)
+      assignIds(node.children)
+    }
+  }
+  assignIds(nodes)
 
   const [container] = await insertPages([
     {
@@ -39,6 +55,7 @@ export async function importPages(
       title: `Imported ${new Date().toLocaleDateString('ru-RU')}`,
       content: [],
       position: Date.now(),
+      teamspace_id: spaceId,
     },
   ])
 
@@ -58,15 +75,20 @@ export async function importPages(
       for (const [j, item] of chunk.entries()) {
         let content: Block[] = []
         if (item.node.markdown.trim()) {
-          content = (await editor.tryParseMarkdownToBlocks(
+          const markdown = rewriteNotionLinks(
             item.node.markdown,
-          )) as Block[]
+            item.node.path.slice(0, -1),
+            idByPath,
+          )
+          content = (await editor.tryParseMarkdownToBlocks(markdown)) as Block[]
         }
         rows.push({
+          id: idOf.get(item.node),
           parent_id: item.parentId,
           title: item.node.title,
           content,
           position: j,
+          teamspace_id: spaceId,
         })
       }
 
@@ -74,16 +96,16 @@ export async function importPages(
       created += inserted.length
       onProgress(Math.min(created, totalPages))
 
-      for (const [j, item] of chunk.entries()) {
-        const meta = inserted[j]
+      for (const item of chunk) {
+        const id = idOf.get(item.node)!
         // anchor — предок на предпоследней глубине: его дети ещё помещаются
-        const anchorId = item.depth >= MAX_PAGE_DEPTH ? item.anchorId : meta.id
+        const anchorId = item.depth >= MAX_PAGE_DEPTH ? item.anchorId : id
         for (const child of item.node.children) {
           const fits = item.depth + 1 <= MAX_PAGE_DEPTH
           if (!fits) flattened++
           nextQueue.push({
             node: child,
-            parentId: fits ? meta.id : item.anchorId,
+            parentId: fits ? id : item.anchorId,
             depth: fits ? item.depth + 1 : MAX_PAGE_DEPTH,
             anchorId,
           })

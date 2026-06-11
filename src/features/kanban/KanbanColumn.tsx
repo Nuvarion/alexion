@@ -11,11 +11,12 @@ interface KanbanColumnProps {
   column: KanbanColumnConfig
   tasks: Task[]
   onTaskClick: (task: Task) => void
+  spaceId: string
 }
 
-export default function KanbanColumn({ column, tasks, onTaskClick }: KanbanColumnProps) {
+export default function KanbanColumn({ column, tasks, onTaskClick, spaceId }: KanbanColumnProps) {
   const { setNodeRef } = useDroppable({ id: column.status })
-  const createTask = useCreateTask()
+  const createTask = useCreateTask(spaceId)
   const [title, setTitle] = useState('')
 
   function handleQuickAdd(e: FormEvent) {

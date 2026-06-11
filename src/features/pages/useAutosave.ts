@@ -17,8 +17,12 @@ export function useAutosave(pageId: string) {
     setStatus('saving')
     try {
       await updatePageContent(pageId, content)
-      queryClient.setQueryData<Page>(['page', pageId], (prev) =>
-        prev ? { ...prev, content } : prev,
+      // updatedAt сохраняем прежний: PageView ремаунтит редактор по
+      // dataUpdatedAt, собственный автосейв ремаунт вызывать не должен
+      queryClient.setQueryData<Page>(
+        ['page', pageId],
+        (prev) => (prev ? { ...prev, content } : prev),
+        { updatedAt: queryClient.getQueryState(['page', pageId])?.dataUpdatedAt },
       )
       setStatus('saved')
     } catch {

@@ -1,8 +1,43 @@
+import { useEffect, useRef } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { signOut } from '../features/auth/api'
 import Sidebar from '../features/pages/Sidebar'
+import { acceptInvite } from '../features/teamspaces/api'
+import { PENDING_INVITE_KEY } from '../features/teamspaces/pendingInvite'
+import { useTeamspaces } from '../features/teamspaces/useTeamspaces'
+import { useSpaceRealtime } from '../features/teamspaces/useSpaceRealtime'
+import { useToast } from './toastContext'
 
 export default function AppLayout() {
+  // Подписываемся на realtime только для командных пространств:
+  // личное — один пользователь, realtime там не нужен
+  const { data: spaces } = useTeamspaces()
+  useSpaceRealtime((spaces ?? []).filter((s) => s.kind === 'team').map((s) => s.id))
+
+  const queryClient = useQueryClient()
+  const toast = useToast()
+  const inviteStarted = useRef(false)
+  useEffect(() => {
+    const token = localStorage.getItem(PENDING_INVITE_KEY)
+    if (!token || inviteStarted.current) return
+    inviteStarted.current = true
+    acceptInvite(token)
+      .then(async () => {
+        localStorage.removeItem(PENDING_INVITE_KEY)
+        await queryClient.invalidateQueries({ queryKey: ['teamspaces'] })
+        toast('Вы присоединились к teamspace')
+      })
+      .catch((e) => {
+        // Битый токен забываем; сетевую ошибку — нет: инвайт применится
+        // при следующем входе в приложение
+        if (e instanceof Error && e.message.includes('invalid invite')) {
+          localStorage.removeItem(PENDING_INVITE_KEY)
+          toast('Ссылка-приглашение недействительна')
+        }
+      })
+  }, [queryClient, toast])
+
   return (
     <div style={{ display: 'flex', height: '100vh' }}>
       <aside
